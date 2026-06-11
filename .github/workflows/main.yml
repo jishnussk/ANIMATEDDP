@@ -1,60 +1,13 @@
-name: Windows-CRD
-
+name: mac
 on: 
   workflow_dispatch:
-    inputs:
-      authcode:
-        description: 'Enter CRD code'
-        required: true
-      pincode:
-        description: 'Six digit Pin'
-        required: true
-  
+defaults:
+  run:
+    shell: bash
+
 jobs:
-  Run-PSScriptAnalyzer-on-Windows:
-    name: Run PSScriptAnalyzer on Windows
-    runs-on: windows-latest
-    # Add an ID here to reference the job's outputs
-    outputs:
-      zip_filename: ${{ steps.keep_alive_step.outputs.zip_filename }}
+  build:
+    runs-on: macos-latest
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v3
-
-    # ... other setup steps ...
-
-    - name: Initialize setup
-      run: ./setup2.ps1
-
-    - name: Start CRD 
-      run: ${{ github.event.inputs.authcode }} -pin=${{ github.event.inputs.pincode }}
-
-    - name: Keep alive
-      id: keep_alive_step # Add an ID to the step to get its output
-      shell: pwsh
-      run: ./timeout1.ps1
-
-  Upload-Project:
-    name: Upload Android Project
-    # This job now depends on the outputs of the first job
-    needs: Run-PSScriptAnalyzer-on-Windows
-    if: always()
-    runs-on: windows-latest
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v3
-
-    - name: Upload project from runner
-      run: |
-        git config --global user.name "ROOTgit123"
-        git config --global user.email "khadijdija32@gmail.com"
-        
-        # Use the output from the previous job to add the specific zip file
-        $zipFile = "${{ needs.Run-PSScriptAnalyzer-on-Windows.outputs.zip_filename }}"
-        Write-Host "Adding file: C:\Users\runneradmin\StudioProjects\$zipFile"
-        git add "C:\Users\runneradmin\StudioProjects\$zipFile"
-        
-        # Commit with a dynamic message
-        git commit -m "Add project file: $zipFile"
-        git push
-      shell: pwsh
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v2
